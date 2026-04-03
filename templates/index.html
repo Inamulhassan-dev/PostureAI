@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostureAI - Intelligent Exercise Posture Analysis System</title>
+    <meta name="description" content="AI-powered real-time exercise posture correction using computer vision and MediaPipe.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Posture<span class="brand-accent">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link active"><i class="fas fa-home"></i> Home</a>
+            <a href="/history" class="nav-link"><i class="fas fa-history"></i> History</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-robot"></i> AI-Powered Computer Vision
+            </div>
+            <h1 class="hero-title">
+                Intelligent Exercise<br>
+                <span class="gradient-text">Posture Analysis</span>
+            </h1>
+            <p class="hero-subtitle">
+                Real-time posture correction powered by MediaPipe & Machine Learning.
+                Train smarter, stay injury-free, achieve perfect form.
+            </p>
+            <div class="hero-cta">
+                <a href="#exercises" class="btn-primary">
+                    <i class="fas fa-play"></i> Start Training
+                </a>
+                <a href="#features" class="btn-secondary">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">33</span>
+                    <span class="stat-label">Body Landmarks</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Exercises</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number">Real-Time</span>
+                    <span class="stat-label">Feedback</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="skeleton-demo">
+                <div class="skeleton-figure">
+                    <div class="sk-head"></div>
+                    <div class="sk-torso"></div>
+                    <div class="sk-arm sk-arm-left"></div>
+                    <div class="sk-arm sk-arm-right"></div>
+                    <div class="sk-leg sk-leg-left"></div>
+                    <div class="sk-leg sk-leg-right"></div>
+                </div>
+                <div class="scan-line"></div>
+                <div class="corner-bracket tl"></div>
+                <div class="corner-bracket tr"></div>
+                <div class="corner-bracket bl"></div>
+                <div class="corner-bracket br"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Exercise Selection -->
+    <section class="exercise-section" id="exercises">
+        <div class="section-header">
+            <span class="section-tag">Choose Exercise</span>
+            <h2 class="section-title">Select Your Workout</h2>
+            <p class="section-subtitle">AI analyzes your form in real-time and provides instant posture correction</p>
+        </div>
+        <div class="exercise-grid">
+            {% set exercise_icons = {
+                'squat': 'person-walking',
+                'pushup': 'person-falling',
+                'bicep_curl': 'dumbbell',
+                'lunge': 'person-running',
+                'shoulder_press': 'arrows-up-down'
+            } %}
+            {% set exercise_descs = {
+                'squat': 'Perfect your squat depth, knee alignment, and back posture',
+                'pushup': 'Maintain body alignment and achieve full push-up depth',
+                'bicep_curl': 'Isolate biceps with correct elbow position',
+                'lunge': 'Balance and proper knee tracking for safer lunges',
+                'shoulder_press': 'Achieve full overhead extension safely'
+            } %}
+            {% set exercise_colors = {
+                'squat': '#00d4ff',
+                'pushup': '#7b2ff7',
+                'bicep_curl': '#ff6b35',
+                'lunge': '#00ff88',
+                'shoulder_press': '#ff2d78'
+            } %}
+            {% for exercise in exercises %}
+            <a href="/exercise?type={{ exercise }}" class="exercise-card" id="card-{{ exercise }}"
+               style="--card-color: {{ exercise_colors.get(exercise, '#00d4ff') }}">
+                <div class="card-glow"></div>
+                <div class="exercise-icon-wrap">
+                    <i class="fas fa-{{ exercise_icons.get(exercise, 'dumbbell') }}"></i>
+                </div>
+                <h3 class="card-title">{{ exercise.replace('_', ' ').title() }}</h3>
+                <p class="card-desc">{{ exercise_descs.get(exercise, 'AI-guided analysis') }}</p>
+                <div class="card-footer">
+                    <span class="card-badge">
+                        <i class="fas fa-robot"></i> AI Guided
+                    </span>
+                    <span class="btn-card">
+                        Start <i class="fas fa-arrow-right"></i>
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <span class="section-tag">Capabilities</span>
+            <h2 class="section-title">How It Works</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #00d4ff">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h3>Pose Detection</h3>
+                <p>MediaPipe detects 33 body landmarks from your webcam feed at 30 FPS</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #7b2ff7">
+                    <i class="fas fa-ruler-combined"></i>
+                </div>
+                <h3>Angle Analysis</h3>
+                <p>Computes joint angles in real-time for precise biomechanical assessment</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #00ff88">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Instant Feedback</h3>
+                <p>Color-coded overlay highlights correct/incorrect posture as you move</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #ff6b35">
+                    <i class="fas fa-hashtag"></i>
+                </div>
+                <h3>Rep Counter</h3>
+                <p>Automatic repetition counting based on exercise movement patterns</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #ff2d78">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>Form Score</h3>
+                <p>Real-time percentage score of your overall exercise form quality</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--fcolor: #ffd700">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>ML Classification</h3>
+                <p>Random Forest & SVM models trained to classify correct vs incorrect posture</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-dumbbell"></i>
+                <span>PostureAI</span>
+            </div>
+            <p class="footer-text">
+                Intelligent Computer Vision System for Exercise Posture Analysis & Correction
+            </p>
+            <p class="footer-credit">Built with MediaPipe &bull; OpenCV &bull; Flask &bull; Scikit-learn</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Animated counter
+        document.querySelectorAll('.stat-number').forEach(el => {
+            const text = el.textContent;
+            const num = parseInt(text);
+            if (!isNaN(num)) {
+                let current = 0;
+                const step = num / 30;
+                const interval = setInterval(() => {
+                    current = Math.min(current + step, num);
+                    el.textContent = Math.round(current);
+                    if (current >= num) clearInterval(interval);
+                }, 50);
+            }
+        });
+    </script>
+</body>
+</html>

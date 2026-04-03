@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exercise.replace('_', ' ').title() }} Analysis - PostureAI</title>
+    <meta name="description" content="Real-time {{ exercise.replace('_', ' ') }} posture analysis with AI feedback.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="exercise-body">
+
+    <!-- Navigation -->
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Posture<span class="brand-accent">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="/history" class="nav-link"><i class="fas fa-history"></i> History</a>
+        </div>
+    </nav>
+
+    <!-- Exercise Analysis Layout -->
+    <div class="exercise-layout">
+
+        <!-- Video Stream Panel -->
+        <div class="video-panel">
+            <div class="video-header-bar">
+                <div class="video-title">
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        LIVE
+                    </div>
+                    <h2 id="exerciseName">{{ exercise.replace('_', ' ').title() }}</h2>
+                </div>
+                <div class="exercise-switcher">
+                    <label>Switch:</label>
+                    <select id="exerciseSelect" onchange="changeExercise()">
+                        {% for ex in exercises %}
+                        <option value="{{ ex }}" {% if ex == exercise %}selected{% endif %}>
+                            {{ ex.replace('_', ' ').title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="video-wrapper">
+                <img src="{{ url_for('video_feed') }}" class="video-feed" id="videoFeed" alt="Live Camera Feed">
+                <div class="video-overlay-corner tl"></div>
+                <div class="video-overlay-corner tr"></div>
+                <div class="video-overlay-corner bl"></div>
+                <div class="video-overlay-corner br"></div>
+            </div>
+
+            <div class="video-footer-bar">
+                <div class="vf-info">
+                    <i class="fas fa-camera"></i> Webcam Active
+                </div>
+                <div class="vf-tip">
+                    <i class="fas fa-lightbulb"></i> Stand 2-3m from camera for best results
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Panel -->
+        <div class="dashboard-panel">
+
+            <!-- Rep Counter Card -->
+            <div class="dash-card counter-card" id="counterCard">
+                <div class="dash-card-header">
+                    <i class="fas fa-hashtag"></i>
+                    <span>Repetitions</span>
+                </div>
+                <div class="rep-display">
+                    <div class="rep-number" id="repCount">0</div>
+                    <div class="rep-label">reps</div>
+                </div>
+                <div class="stage-badge" id="stageBadge">READY</div>
+                <button class="reset-btn" id="resetBtn" onclick="resetCounter()">
+                    <i class="fas fa-redo"></i> Reset Counter
+                </button>
+            </div>
+
+            <!-- Form Score Card -->
+            <div class="dash-card score-card" id="scoreCard">
+                <div class="dash-card-header">
+                    <i class="fas fa-star"></i>
+                    <span>Form Score</span>
+                </div>
+                <div class="score-gauge">
+                    <svg class="gauge-svg" viewBox="0 0 120 120" id="gaugeSvg">
+                        <circle class="gauge-bg" cx="60" cy="60" r="50"
+                                stroke-dasharray="314" stroke-dashoffset="0"/>
+                        <circle class="gauge-fill" id="gaugeFill" cx="60" cy="60" r="50"
+                                stroke-dasharray="314" stroke-dashoffset="78.5"/>
+                    </svg>
+                    <div class="gauge-text">
+                        <span class="gauge-value" id="formScore">100</span>
+                        <span class="gauge-unit">%</span>
+                    </div>
+                </div>
+                <div class="score-bar-wrap">
+                    <div class="score-bar-track">
+                        <div class="score-bar-fill" id="scoreFill" style="width: 100%"></div>
+                    </div>
+                    <div class="score-labels">
+                        <span>Poor</span>
+                        <span>Good</span>
+                        <span>Perfect</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Card -->
+            <div class="dash-card feedback-card" id="feedbackCard">
+                <div class="dash-card-header">
+                    <i class="fas fa-comments"></i>
+                    <span>Live Feedback</span>
+                    <div class="pulse-dot" id="feedbackPulse"></div>
+                </div>
+                <div class="feedback-scroll" id="feedbackList">
+                    <div class="feedback-item fi-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Stand in front of the camera to begin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Joint Angles Card -->
+            <div class="dash-card angles-card" id="anglesCard">
+                <div class="dash-card-header">
+                    <i class="fas fa-ruler-combined"></i>
+                    <span>Joint Angles</span>
+                </div>
+                <div class="angles-grid" id="anglesList">
+                    <div class="no-data-msg">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        Waiting for detection...
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Initialize exercise
+        setExercise('{{ exercise }}');
+
+        // Start polling for analysis data
+        setInterval(updateDashboard, 250);
+    </script>
+</body>
+</html>

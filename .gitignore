@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+ehthumbs.db
+
+# Data files (CSVs are regenerable — keep .gitkeep for folder structure)
+data/collected/*.csv
+data/processed/*.csv
+!data/collected/.gitkeep
+!data/processed/.gitkeep
+
+# Logs
+*.log
