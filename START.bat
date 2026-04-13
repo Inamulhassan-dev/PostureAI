@@ -1,10 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
+:: Ensure Windows system commands are available
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%PATH%"
+
 title PostureAI - Starting...
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: ANSI colour helper (requires Windows 10 1903+)
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 for /f %%a in ('echo prompt $E^| cmd') do set "ESC=%%a"
 set "CYAN=%ESC%[96m"
 set "GREEN=%ESC%[92m"
@@ -22,16 +25,16 @@ echo %CYAN%%BOLD%^|     Intelligent Computer Vision System  ^|  Launcher        
 echo %CYAN%%BOLD%+==============================================================+%RESET%
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 1 — Find project base directory
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 set "BASE=%~dp0"
 echo %DIM%  Project root : %BASE%%RESET%
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 2 — Check that Python is installed
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo %CYAN%%BOLD%  [1/5]  Checking Python installation...%RESET%
 python --version >nul 2>&1
 if errorlevel 1 (
@@ -44,9 +47,9 @@ if errorlevel 1 (
 for /f "tokens=*" %%v in ('python --version 2^>^&1') do echo   %GREEN%[OK]%RESET%  %%v detected
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 3 — Check that venv exists, create if not
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo %CYAN%%BOLD%  [2/5]  Setting up virtual environment...%RESET%
 if not exist "%BASE%venv\Scripts\python.exe" (
     echo   %YELLOW%[??]  venv not found — creating now...%RESET%
@@ -66,9 +69,9 @@ if not exist "%BASE%venv\Scripts\python.exe" (
 "%BASE%venv\Scripts\python.exe" -m pip install --upgrade pip --quiet 2>nul
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 4 — Install / verify packages
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo %CYAN%%BOLD%  [3/5]  Verifying pip packages...%RESET%
 
 "%BASE%venv\Scripts\python.exe" -c ^
@@ -90,9 +93,9 @@ if errorlevel 1 (
 )
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 5 — Check ML models, auto-train if missing
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo %CYAN%%BOLD%  [4/5]  Checking ML models...%RESET%
 
 set "MODELS_OK=1"
@@ -118,9 +121,9 @@ if "!MODELS_OK!"=="0" (
 )
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: STEP 6 — Run diagnostic (non-blocking for camera/port warnings)
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo %CYAN%%BOLD%  [5/5]  Running system diagnostic...%RESET%
 echo           %DIM%(checking files, modules, features, camera, routes)%RESET%
 echo.
@@ -138,20 +141,14 @@ if %DIAG_CODE% NEQ 0 (
     exit /b 1
 )
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM:: ═══════════════════════════════════════════════════════════════════════════
 :: STEP 7 — Kill any old instance on port 5000
 :: ═══════════════════════════════════════════════════════════════════════════
-for /f "tokens=5" %%p in (
-    'netstat -ano ^| findstr ":5000 " ^| findstr "LISTENING" 2^>nul'
-) do (
-    echo   %YELLOW%[??]  Found process on port 5000 (PID %%p) — stopping it...%RESET%
-    taskkill /PID %%p /F >nul 2>&1
-    timeout /t 1 /nobreak >nul
-)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $conns = Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue; if ($conns) { foreach ($c in $conns) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue } } }" >nul 2>&1
 
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 :: LAUNCH
-:: ═══════════════════════════════════════════════════════════════════════════
+REM =========================================================================
 echo.
 echo %GREEN%%BOLD%+==============================================================+%RESET%
 echo %GREEN%%BOLD%^|  [OK]  All checks passed! Launching PostureAI...             ^|%RESET%
