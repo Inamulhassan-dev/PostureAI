@@ -85,8 +85,16 @@ def check_venv():
     section("Virtual Environment")
     base       = os.path.dirname(os.path.abspath(__file__))
     venv_path  = os.path.join(base, "venv")
-    pip_path   = os.path.join(venv_path, "Scripts", "pip.exe")
-    py_path    = os.path.join(venv_path, "Scripts", "python.exe")
+
+    # Support both Windows (Scripts/) and Unix (bin/) layouts
+    if sys.platform == "win32":
+        pip_path = os.path.join(venv_path, "Scripts", "pip.exe")
+        py_path  = os.path.join(venv_path, "Scripts", "python.exe")
+        activate_hint = r"venv\Scripts\activate"
+    else:
+        pip_path = os.path.join(venv_path, "bin", "pip")
+        py_path  = os.path.join(venv_path, "bin", "python")
+        activate_hint = "source venv/bin/activate"
 
     if os.path.isdir(venv_path):
         ok(f"venv/ folder exists")
@@ -95,14 +103,14 @@ def check_venv():
         return
 
     if os.path.isfile(pip_path):
-        ok("pip.exe inside venv")
+        ok("pip inside venv")
     else:
-        add_issue("pip.exe missing inside venv", "Run:  python -m venv venv --clear")
+        add_issue("pip missing inside venv", "Run:  python -m venv venv --clear")
 
     if os.path.isfile(py_path):
-        ok("python.exe inside venv")
+        ok("python inside venv")
     else:
-        add_issue("python.exe missing inside venv", "Run:  python -m venv venv --clear")
+        add_issue("python missing inside venv", "Run:  python -m venv venv --clear")
 
 # ════════════════════════════════════════════════════════════════════
 # 3. REQUIRED FOLDERS
@@ -196,6 +204,12 @@ OPTIONAL_PACKAGES = {
 
 def check_packages():
     section("Python Packages (pip)")
+    # Build a cross-platform install hint once
+    if sys.platform == "win32":
+        pip_cmd = r"venv\Scripts\pip"
+    else:
+        pip_cmd = "venv/bin/pip"
+
     all_ok = True
     for import_name, (pip_name, version) in REQUIRED_PACKAGES.items():
         try:
@@ -205,7 +219,7 @@ def check_packages():
         except ImportError:
             add_issue(
                 f"Package not installed: {pip_name}",
-                f"Run:  venv\\Scripts\\pip install {pip_name}"
+                f"Run:  {pip_cmd} install {pip_name}"
             )
             all_ok = False
     print()
@@ -215,7 +229,7 @@ def check_packages():
             ok(f"{pip_name:<22} installed  (optional: {version})")
         except ImportError:
             add_warn(f"Optional package missing: {pip_name}  -> {version}")
-            info(f"  Install:  venv\\Scripts\\pip install {pip_name}")
+            info(f"  Install:  {pip_cmd} install {pip_name}")
     if all_ok:
         info("All required packages installed")
 
@@ -239,9 +253,13 @@ def check_models():
         if files_ok:
             ok(f"{ex:<20}  model + encoder + features")
         else:
+            if sys.platform == "win32":
+                py_cmd = r"venv\Scripts\python"
+            else:
+                py_cmd = "venv/bin/python"
             add_issue(
                 f"Model files missing for: {ex}",
-                f"Run:  venv\\Scripts\\python train_model.py  (choose option 2)"
+                f"Run:  {py_cmd} train_model.py  (choose option 2)"
             )
         if os.path.isfile(os.path.join(models_dir, f"{ex}_confusion_matrix.png")):
             cm_count += 1

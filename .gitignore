@@ -28,5 +28,16 @@ data/processed/*.csv
 !data/collected/.gitkeep
 !data/processed/.gitkeep
 
+# ML training artefacts (confusion-matrix plots are regenerable)
+models/*_confusion_matrix.png
+# Uncomment the line below if you want to regenerate models locally
+# and NOT commit them to the repo:
+# models/*.pkl
+
 # Logs
 *.log
+
+# Misc build artefacts
+dist/
+build/
+*.egg-info/

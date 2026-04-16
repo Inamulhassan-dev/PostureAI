@@ -2,9 +2,10 @@
 
 > Real-time AI-powered exercise posture analysis and correction using Computer Vision, MediaPipe, and Machine Learning.
 
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://python.org)
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-green?logo=flask)](https://flask.palletsprojects.com)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose-orange?logo=google)](https://mediapipe.dev)
+[![CI](https://github.com/Inamulhassan-dev/PostureAI/actions/workflows/ci.yml/badge.svg)](https://github.com/Inamulhassan-dev/PostureAI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -34,30 +35,37 @@
 
 ---
 
-## 🚀 Quick Start (One Command!)
+## 🚀 Quick Start
 
 ### Prerequisites
-- **Python 3.8+** installed ([download here](https://python.org/downloads/))
-  - ✅ Check **"Add Python to PATH"** during installation
-- **Webcam** connected to your computer
 
-### Run
+- **Python 3.9 – 3.12** installed ([download here](https://python.org/downloads/))
+  - Windows: ✅ Check **"Add Python to PATH"** during installation
+  - macOS: use `brew install python` or the official installer
+  - Linux: use your package manager, e.g. `sudo apt install python3 python3-venv`
+- **Webcam** connected to your computer
+- **Git** installed
+
+### 1 · Clone
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/PostureAI.git
+git clone https://github.com/Inamulhassan-dev/PostureAI.git
 cd PostureAI
-
-# 2. Launch (handles EVERYTHING automatically)
-START.bat
 ```
 
-**That's it!** `START.bat` will automatically:
-1. ✅ Create a virtual environment
-2. ✅ Install all Python packages
-3. ✅ Train ML models (if not present)
-4. ✅ Run full system diagnostic
-5. ✅ Open your browser to the app
+### 2 · Launch
+
+| Platform | Command |
+|---|---|
+| **Windows** | Double-click `START.bat` **or** run it in a terminal |
+| **macOS / Linux** | `bash start.sh` |
+
+The launcher will automatically:
+1. ✅ Create a Python virtual environment
+2. ✅ Install all packages from `requirements.txt`
+3. ✅ Train ML models (first run only, ~30 s)
+4. ✅ Run a system diagnostic
+5. ✅ Open your browser to **http://localhost:5000**
 
 ---
 
@@ -108,30 +116,42 @@ PostureAI/
 
 ---
 
-## 🔧 Manual Setup (Alternative)
+## 🔧 Manual Setup
 
-If you prefer manual setup instead of `START.bat`:
+If you prefer to set things up yourself:
 
 ```bash
-# Create virtual environment
+# ── 1. Create & activate a virtual environment ──────────────────────────────
 python -m venv venv
-venv\Scripts\activate           # Windows
-# source venv/bin/activate      # macOS/Linux
 
-# Install dependencies
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
+
+# ── 2. Install dependencies ──────────────────────────────────────────────────
 pip install -r requirements.txt
 
-# Train ML models (one-time, ~30 seconds)
+# ── 3. Train ML models (one-time, ~30 seconds) ──────────────────────────────
 python train_model.py
-# Choose option 2: Train all exercises
+# Select option 2 → "Train all exercises"
 
-# Verify everything works
+# ── 4. Verify the installation ───────────────────────────────────────────────
 python check_system.py
 
-# Run the web app
-python web_app.py
-# Open: http://localhost:5000
+# ── 5. Run ───────────────────────────────────────────────────────────────────
+python web_app.py          # web interface → http://localhost:5000
+# or
+python main_app.py         # standalone OpenCV desktop window
 ```
+
+### GPU / CPU note
+
+MediaPipe runs on **CPU by default** — no GPU or CUDA setup is required.
+If you have a machine with a supported GPU and want to experiment with
+`model_complexity=2` (heavy model), see the `MODEL_COMPLEXITY` setting in
+`config.py`.
 
 ---
 
@@ -186,11 +206,15 @@ python main_app.py
 
 ## 📋 System Requirements
 
-- **OS:** Windows 10/11 (macOS/Linux with minor path adjustments)
-- **Python:** 3.8 or higher
-- **RAM:** 4 GB minimum
-- **Webcam:** Any USB or built-in camera
-- **Browser:** Chrome, Firefox, or Edge (for web app)
+| | Minimum |
+|---|---|
+| **OS** | Windows 10/11, macOS 12+, Ubuntu 20.04+ |
+| **Python** | 3.9 – 3.12 (3.10 recommended) |
+| **RAM** | 4 GB |
+| **Webcam** | Any USB or built-in camera |
+| **Browser** | Chrome, Firefox, or Edge (for web app) |
+
+> **Note:** No GPU or CUDA is required. MediaPipe performs all pose estimation on CPU.
 
 ---
 
