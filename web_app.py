@@ -44,7 +44,6 @@ camera = None
 
 def cleanup_camera():
     """Release camera on application shutdown."""
-    global camera
     if camera is not None and camera.isOpened():
         camera.release()
         print("Camera released.")
@@ -64,7 +63,7 @@ def get_camera():
 
 def generate_frames():
     """Generator function for video streaming."""
-    global latest_analysis, current_exercise
+    global latest_analysis
 
     cap = get_camera()
 

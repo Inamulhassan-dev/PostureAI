@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master", "copilot/**"]
+  pull_request:
+    branches: ["main", "master"]
+
+# Restrict default GITHUB_TOKEN permissions to the minimum needed.
+permissions:
+  contents: read
+
+jobs:
+  lint-and-smoke:
+    name: Lint & smoke tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
+
+      # ── Lint ─────────────────────────────────────────────────────────────
+      - name: Lint with flake8
+        run: |
+          # Fail on syntax errors or undefined names; ignore long lines & style nits
+          flake8 . \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics \
+            --exclude=venv,__pycache__,.git
+
+      # ── Headless import smoke tests ───────────────────────────────────────
+      # MediaPipe and OpenCV need a virtual display on headless Linux runners.
+      - name: Install virtual display
+        run: sudo apt-get install -y xvfb libgl1
+
+      - name: Smoke — imports
+        run: |
+          xvfb-run python - <<'EOF'
+          import sys
+          print(f"Python {sys.version}")
+
+          import cv2
+          print(f"OpenCV   {cv2.__version__}")
+
+          import mediapipe as mp
+          print(f"MediaPipe {mp.__version__}")
+
+          import numpy as np
+          print(f"NumPy    {np.__version__}")
+
+          import pandas as pd
+          print(f"Pandas   {pd.__version__}")
+
+          import sklearn
+          print(f"sklearn  {sklearn.__version__}")
+
+          import flask
+          print(f"Flask    {flask.__version__}")
+
+          print("All imports OK")
+          EOF
+
+      - name: Smoke — project modules
+        run: |
+          xvfb-run python - <<'EOF'
+          import sys, os
+          sys.path.insert(0, os.getcwd())
+
+          from config import SUPPORTED_EXERCISES, MODELS_DIR
+          print(f"config OK — exercises: {SUPPORTED_EXERCISES}")
+
+          from utils.angle_calculator import AngleCalculator
+          calc = AngleCalculator()
+          angle = calc.calculate_angle((0, 0), (0, 1), (1, 1))
+          assert 85 <= angle <= 95, f"Expected ~90°, got {angle}"
+          print(f"AngleCalculator OK — right angle = {angle}°")
+
+          from utils.pose_detector import PoseDetector
+          from utils.feedback_generator import FeedbackGenerator
+          print("PoseDetector / FeedbackGenerator import OK")
+
+          from exercises.squat_analyzer import SquatAnalyzer
+          from exercises.pushup_analyzer import PushupAnalyzer
+          from exercises.bicep_curl_analyzer import BicepCurlAnalyzer
+          from exercises.lunge_analyzer import LungeAnalyzer
+          from exercises.shoulder_press_analyzer import ShoulderPressAnalyzer
+          print("All exercise analysers import OK")
+
+          import numpy as np
+          mock = {i: (0.5, 0.05 + i * 0.028, 0.0, 0.98) for i in range(33)}
+          for Cls in [SquatAnalyzer, PushupAnalyzer, BicepCurlAnalyzer,
+                      LungeAnalyzer, ShoulderPressAnalyzer]:
+              result = Cls().analyze(mock)
+              assert "rep_count" in result
+              assert "form_score" in result
+              print(f"  {Cls.__name__} smoke OK")
+
+          print("All module smoke tests passed")
+          EOF
+
+      - name: Smoke — model training (synthetic data)
+        run: |
+          xvfb-run python - <<'EOF'
+          from train_model import PostureModelTrainer, PosturePredictor
+
+          trainer = PostureModelTrainer()
+          model = trainer.train_model("squat", use_synthetic=True)
+          assert model is not None, "Model training returned None"
+          print("Model training OK")
+
+          predictor = PosturePredictor("squat")
+          label, confidence = predictor.predict({
+              "left_knee_angle": 85, "right_knee_angle": 87,
+              "left_hip_angle": 80,  "right_hip_angle": 82,
+              "back_angle": 165
+          })
+          print(f"Prediction: {label}  confidence: {confidence:.2f}")
+          assert label in ("correct", "incorrect"), f"Unexpected label: {label}"
+          print("Model prediction OK")
+          EOF
+
+      - name: Smoke — Flask app (syntax check)
+        run: |
+          python - <<'EOF'
+          # Validate web_app.py has valid Python syntax without executing it.
+          # (web_app.py initialises the camera at module level, so we must not
+          # exec_module it in a headless / camera-less environment.)
+          import ast, pathlib
+          source = pathlib.Path("web_app.py").read_text()
+          tree = ast.parse(source, filename="web_app.py")
+          # Confirm the Flask app object is assigned at module level
+          assigned = {
+              node.targets[0].id
+              for node in ast.walk(tree)
+              if isinstance(node, ast.Assign)
+              and node.targets
+              and isinstance(node.targets[0], ast.Name)
+          }
+          assert "app" in assigned, "'app' not found in web_app.py module scope"
+          print("web_app.py syntax OK — 'app' object defined")
+          EOF
